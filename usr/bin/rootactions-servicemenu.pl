@@ -3,6 +3,8 @@
 eval 'exec /usr/bin/perl  -S $0 ${1+"$@"}'
     if 0; # not running under some shell
 
+#VERSION:2.8.7
+    
 #----IMPORTANT--------------------------------------------------------
 
 # This script may contain bugs so use with caution.
@@ -370,6 +372,62 @@ sub root_reminder_msgs {
 	   "xx" => "Your string, xx is the country abbreviation"
 	);
 	$ROOTREMINDER = ($ROOTREMINDER{"$KDELANG"} or $ROOTREMINDER{"$KDELANGSHT"} or $ROOTREMINDER{"en_US"});
+	return 0;
+}
+
+sub done_msgs {
+	&get_kde_language;
+	%DONETITLE = (
+	   "ca" => "ACTION FINISHED",
+	   "cs" => "ACTION FINISHED",
+	   "el" => "ACTION FINISHED",
+	   "en_US" => "ACTION FINISHED",
+	   "fi" => "ACTION FINISHED",
+	   "fr" => "ACTION FINISHED",
+	   "gl" => "ACTION FINISHED",
+	   "hu" => "MÜVELET BEFEJEZVE",
+	   "it" => "ACTION FINISHED",
+	   "lt" => "ACTION FINISHED",
+	   "nb" => "ACTION FINISHED",
+	   "nn" => "ACTION FINISHED",
+	   "pl" => "ACTION FINISHED",
+	   "pt" => "ACTION FINISHED",
+	   "pt_PT" => "ACTION FINISHED",
+	   "ru" => "ACTION FINISHED",
+	   "sl" => "ACTION FINISHED",
+	   "sr" => "ACTION FINISHED",
+	   "sr\@latin" => "ACTION FINISHED",
+	   "sv" => "ACTION FINISHED",
+	   "tr" => "ACTION FINISHED",
+	   "xx" => "ACTION FINISHED",
+	);
+
+	%DONEMSG = (
+	   "ca" => "The following action successful:",
+	   "cs" => "The following action successful:",
+	   "el" => "The following action successful:",
+	   "en_US" => "The following action successful:",
+	   "fi" => "The following action successful:",
+	   "fr" => "The following action successful:",
+	   "gl" => "The following action successful:",
+	   "hu" => "A következő művelet sikeresen befejeződött:",
+	   "it" => "The following action successful:",
+	   "lt" => "The following action successful:",
+	   "nb" => "The following action successful:",
+	   "nn" => "The following action successful:",
+	   "pl" => "The following action successful:",
+	   "pt" => "The following action successful:",
+	   "pt_PT" => "The following action successful:",
+	   "ru" => "The following action successful:",
+	   "sl" => "The following action successful:",
+	   "sr" => "The following action successful:",
+	   "sr\@latin" => "The following action successful:",
+	   "sv" => "The following action successful:",
+	   "tr" => "The following action successful:",
+	   "xx" => "The following action successful:",
+	);
+	$DONETITLE = ($DONETITLE{"$KDELANG"} or $DONETITLE{"$KDELANGSHT"} or $DONETITLE{"en_US"});
+	$DONEMSG = ($DONEMSG{"$KDELANG"} or $DONEMSG{"$KDELANGSHT"} or $DONEMSG{"en_US"});
 	return 0;
 }
 
@@ -756,7 +814,7 @@ sub permission_dialog_msgs {
 	   "fi" => "aseta sticky-bitti",
 	   "fr" => "Allouer le bit collant",
 	   "gl" => "establecer o bit de adhesión",
-	   "hu" => "Sticky bit beállítása",
+	   "hu" => "Ragadós bit beállítása",
 	   "it" => "inserisci bit Sticky",
 	   "lt" => "nustatyti lipnų bitą",
 	   "nb" => "klebrig",
@@ -852,7 +910,22 @@ sub permission_dialog_msgs {
 
 #Find out the language used in kde
 sub get_kde_language {
-        $KDELANG = $ENV{LANG};
+	if ( exists $ENV{KDEHOME}) {
+		$KDEGLOBALFILE = "$ENV{KDEHOME}/share/config/kdeglobals";
+	}
+	else {
+		# config path in blackPanther OS
+		$KDEGLOBALFILE = "~/.kde4/share/config/kdeglobals";
+	}
+
+	# use kreadconfig to get the languages set for kde. Use cut to get only the primary language and discard encoding.
+	chomp($KDELANG = `$CONFIGCOMMAND --group Locale --key Language --file $KDEGLOBALFILE | cut -d ':' -f 1 | cut -d '.' -f 1`);
+
+	# If $KDEGLOBALFILE contains no language info, kreadconfig will print nothing. Read the LANG environment variable instead.
+	if( $KDELANG eq ""){
+		$KDELANG = $ENV{LANG};
+	}
+
 	chomp($KDELANGSHT = substr("$KDELANG",0,2));
 	return 0;
 }
@@ -877,21 +950,30 @@ if ( $#ARGV lt 0 ) {
 &get_kde_path ;
 
 # Check whether kdesudo is installed, and use it instead of kdesu to get root privileges.
-#if ( `which kdesudo` ) {
-#	$SUCOMMAND = "$KDEBINPATH"."kdesudo -d --noignorebutton --"}
-#elsif ( `which kdesu` ) {
-#	$SUCOMMAND = "$KDEBINPATH"."kdesu -d -c"}
-if ( `which pkexec` ) {
+# kdesu still available under blackPanther OS
+
+if ( `which kdesu 2>/dev/null` ) {
+	$SUCOMMAND = "$KDEBINPATH"."kdesu -d -c"}
+elsif ( -x "/usr/libexec/kf5/kdesu") {
+	$SUCOMMAND = "/usr/libexec/kf5/kdesu -c"}
+elsif ( `which pkexec 2>/dev/null` ) {
 	$SUCOMMAND = "pkexec"}
 else { $SUCOMMAND = "xdg-su -c"}
 
-$DIALOGCOMMAND = "$KDEBINPATH"."kdialog" ;
+# blackPanther OS provides another Qt5 dialog PyDialog
+if ( `which pydialog 2>/dev/null` ) {
+    $DIALOGCOMMAND = "$KDEBINPATH"."pydialog" ;}
+elsif ( `which kdialog 2>/dev/null` ) {
+    $DIALOGCOMMAND = "$KDEBINPATH"."kdialog" ;}
+else { $DIALOGCOMMAND = "notify-send -u critical 'ERROR'"}
+
+# changed 4 to 5 kconfig => 5.0    
+$CONFIGCOMMAND = "$KDEBINPATH"."kreadconfig5" ;
 
 # Check whether dbus-run-session (dbus 1.8.x) is available
 $DBUSRUN = "" ;
 if ( `which dbus-run-session` ) {
 	$DBUSRUN = "dbus-run-session"}
-
 
 #---Start root actions---
 $EXECNAME = $0 ;
@@ -903,7 +985,8 @@ $TARGET = join("' '", @ARGV) ;
 sub root_konsole_here {
 	$APPNAME = shift @ARGV ;
 	$WORKDIR = shift @ARGV ;
-	exec "$SUCOMMAND \'$EXECNAME\' do_root_konsole \'$APPNAME\' \'$WORKDIR\'";
+	#print "$SUCOMMAND \"\'$EXECNAME\' do_root_konsole \'$APPNAME\' \'$WORKDIR\'\"\n";
+	#exec "$SUCOMMAND \"\'$EXECNAME\' do_root_konsole \'$APPNAME\' \'$WORKDIR\'\"";
 	exit $?;
 }
 
@@ -918,12 +1001,26 @@ sub do_root_konsole {
               $TERMINAL = $KDEBINPATH.$APPNAME ; }
            else {
               $TERMINAL = $APPNAME ; }
-	   
 	   $APPNAME =~ tr/a-z/A-Z/ ;
 	   $WORKDIR = shift @ARGV ;
-	   exec "$TERMINAL --nofork --workdir \'$WORKDIR\'" ;
-	   exit $?;
-	}
+	   
+	 if ( $TERMINAL eq "konsole" ) {
+	   # Fixed bug with qt5 applications not opening
+           # because they don't provide the kde-options like "--caption" any more
+            $OPTTEST = system "$TERMINAL --help-kde 2>/dev/null" ;
+            if ( $OPTTEST eq 0 ) {
+        	#print "$TERMINAL --caption \"!$APPNAME $ROOTREMINDER\" --workdir \'$WORKDIR\'\n" ;
+                #eval $(dbus-launch)" ;
+                exec "$TERMINAL --caption \"$APPNAME $ROOTREMINDER\" --workdir \'$WORKDIR\'" ; }
+            else {
+                #print "$TERMINAL --workdir \'$WORKDIR\'\n" ;
+                system "$TERMINAL --workdir \'$WORKDIR\'" ; }
+          } elsif ( $TERMINAL eq "xterm" ) { 
+        	system "$TERMINAL -e \"cd $WORKDIR ; /bin/bash\"" ; }
+    	   else { 
+    		exec "$DIALOGCOMMAND --error \"$TERMINAL not implemented yet!\"" ; }
+    	}
+        exit $?;
 }
 #---End root konsole subroutines---
 
@@ -934,7 +1031,7 @@ sub custom_open_with {
 	$APPNAME = `$DIALOGCOMMAND --title "$OPENTITLE" --inputbox "$OPENMSG" program` ;
 	if ( $? eq 0 ) {
 	   chomp $APPNAME ;
-      	   exec "$SUCOMMAND \'$EXECNAME\' do_open_with \'$APPNAME\' \'$TARGET\'";
+      	   exec "$SUCOMMAND \"\'$EXECNAME\' do_open_with \'$APPNAME\' \'$TARGET\'\"";
 	   exit $?;
 	}
 }
@@ -942,33 +1039,43 @@ sub custom_open_with {
 sub open_with {
 	$APPNAME = shift @ARGV ;
 	$TARGET = join("' '", @ARGV) ;
+	
 
 	if ( $APPNAME eq "defaultfm" ) {
-	     chomp($APPNAME = `xdg-mime query default inode/directory | sed s/.desktop// | sed s/kde4-//`);
+	     chomp($APPNAME = `xdg-mime query default inode/directory | sed s/.desktop// | sed s/kde4-// | sed s/org.kde.//`);
 	     if ( $APPNAME eq "kfmclient_dir" ) { $APPNAME = "konqueror"; }
 	     #Check that file manager is available
-	     system "which $APPNAME" ;
+	     system "which $APPNAME 2>/dev/null" ;
 	     if (( $? ne 0 ) || ( $APPNAME eq "" )) { 
-		if ( `which dolphin` ) { $APPNAME = "dolphin"; } #dolphin as fallback if available
+		if ( `which dolphin 2>/dev/null` ) { $APPNAME = "dolphin"; } #dolphin as fallback if available
 		else { $APPNAME = "konqueror"; } 
 	     }
 	}
 	elsif ( $APPNAME eq "defaultte" ) {
-	     chomp($APPNAME = `xdg-mime query default text/plain | sed s/.desktop// | sed s/kde4-//`);
-	     system "which $APPNAME" ;
+	     chomp($APPNAME = `xdg-mime query default text/plain | sed s/.desktop// | sed s/kde4-// | sed s/org.kde.//`);
+	     system "which $APPNAME 2>/dev/null" ;
 	     if (( $? ne 0 ) || ( $APPNAME eq "" )) { 
-		if ( `which kate` ) { $APPNAME = "kate"; } #kate as fallback if available
-		else { $APPNAME = "kwrite"; } 
+		if ( `which kate 2>/dev/null` ) { $APPNAME = "kate"; 
+		    	    print "1 $APPNAME\n" ;	
+		} #kate as fallback if available
+		else { $APPNAME = "kwrite"; 
+	    		    exec "$DIALOGCOMMAND --error 'Not found application for event.<br>Please install first: kate, gwenview, etc'" ;
+	    		    exit $?;
+		} 
              }   
 	}
 	#Redundant check in KDE4 ("defaultte" should handle choosing the text editor), kept for KDE3 compatibility 
 	elsif ( $APPNAME eq "kate" ) {
-	      system "which kate" ;
+	      system "which kate 2>/dev/null" ;
 	      if ( $? ne 0 ) {
-		  $APPNAME = "kwrite"; }
+	        exec "$DIALOGCOMMAND --error Not found, please install first" ;
+		#  $APPNAME = "kwrite"; }
+		exit $?; 
+		}
 	}
 
-	exec "$SUCOMMAND \'$EXECNAME\' do_open_with \'$APPNAME\' \'$TARGET\'";
+	# print "1$SUCOMMAND \"\'2$EXECNAME\' 3do_open_with \'4$APPNAME\' \'5$TARGET\'\"\n";
+	exec "$SUCOMMAND \"\'$EXECNAME\' do_open_with \'$APPNAME\' \'$TARGET\'\"";
 	exit $?; 
 }
 
@@ -996,7 +1103,7 @@ sub do_open_with {
            if ( $OPTTEST eq 0 ) {
               exec "$DBUSRUN $CPROGRAM --caption \"$APPNAME $ROOTREMINDER\" \'$TARGET\'" ; }
            else {
-              exec "KDE_SESSION_VERSION=5 KDE_FULL_SESSION=true $DBUSRUN $CPROGRAM \'$TARGET\'" ; }
+              exec "$DBUSRUN $CPROGRAM \'$TARGET\'" ; }
            exit $?;
         }
 }
@@ -1010,7 +1117,7 @@ sub root_copy {
 	   $NEWNAME = `$DIALOGCOMMAND --title "$COPYTITLE" --inputbox "$COPYMSG" \'$OLDNAME\'` ;
 	   chop $NEWNAME;
 	   if ( $? eq 0 && $OLDNAME ne $NEWNAME ) {
-	      exec "$SUCOMMAND \'$EXECNAME\' do_copy \'$OLDNAME\' \'$NEWNAME\'";
+	      exec "$SUCOMMAND \"\'$EXECNAME\' do_copy \'$OLDNAME\' \'$NEWNAME\'\"";
 	      exit $?;
 
 	   }
@@ -1023,9 +1130,9 @@ sub do_copy {
 	   $OLDNAME = $ARGV[0] ;
 	   $NEWNAME = $ARGV[1] ;
 	#Check for kde-cp
-	if ( `which kde-cp` ) {
-	     if ( $CPDIALOGS ) { $COPYCOMMAND = "$KDEBINPATH"."kde-cp --"; }
-	     else { $COPYCOMMAND = "$KDEBINPATH"."kde-cp --overwrite --noninteractive --"; }
+	if ( `which kdecp5 2>/dev/null` ) {
+	     if ( $CPDIALOGS ) { $COPYCOMMAND = "$KDEBINPATH"."kdecp5 --"; }
+	     else { $COPYCOMMAND = "$KDEBINPATH"."kdecp5 --overwrite --noninteractive --"; }
 	}
         else { $COPYCOMMAND = "cp -r"; }
 	   `$COPYCOMMAND \'$OLDNAME\' \'$NEWNAME\'`;
@@ -1040,7 +1147,7 @@ sub root_rename {
 	$TARGET = join("' '", @ARGV) ;
 	chomp($RENAMERPATH = `which $BATCHRENAMER`);	
 	if ( $#ARGV > 0 && -x $RENAMERPATH ) {
-	   exec "$SUCOMMAND \'$EXECNAME\' do_open_with \'$BATCHRENAMER\' \'$TARGET\'";
+	   exec "$SUCOMMAND \"\'$EXECNAME\' do_open_with \'$BATCHRENAMER\' \'$TARGET\'\"";
 	   exit $?;
 	}
 	# else we'll use a simple rename script
@@ -1050,7 +1157,7 @@ sub root_rename {
 	   $NEWNAME = `$DIALOGCOMMAND --title "$RENAMETITLE" --inputbox "$RENAMEMSG" \'$OLDNAME\'` ;
 	   chop $NEWNAME;
 	   if ( $? eq 0 && $OLDNAME ne $NEWNAME ) {
-	      exec "$SUCOMMAND \'$EXECNAME\' do_rename \'$OLDNAME\' \'$NEWNAME\'";
+	      exec "$SUCOMMAND \"\'$EXECNAME\' do_rename \'$OLDNAME\' \'$NEWNAME\'\"";
 	      exit $?;
 	   }
 	}
@@ -1075,7 +1182,7 @@ sub do_rename {
 
 #---Compress subroutines---
 sub root_compress {
-	exec "$SUCOMMAND \'$EXECNAME\' do_compress \'$TARGET\'";
+	exec "$SUCOMMAND \"\'$EXECNAME\' do_compress \'$TARGET\'\"";
 }
 
 sub do_compress {
@@ -1102,7 +1209,7 @@ sub root_delete {
 	   # kdesu will run the command as regular user if 'Ignore' is chosen from kdesu dialog.
 	   # To prevent unwanted deletion of files, we'll run 'do_delete' instead of 'rm -r', 'do delete'
 	   # will exit if it's run as normal user, therefore the files writable for user are safe when clicking 'Ignore'
-	   exec "$SUCOMMAND \'$EXECNAME\' do_delete \'$TARGET\'";
+	   exec "$SUCOMMAND \"\'$EXECNAME\' do_delete \'$TARGET\'\"";
 	}
 }
 
@@ -1118,19 +1225,20 @@ sub do_delete {
 #---Ownership subroutines---
 sub root_ownership {
 	#chown target files to root
-
 	# If only one directory selected, ask whether to apply the changes recursively
 	$RECURSIVE = "0" ;
 	if ( $#ARGV < 1 && -d $ARGV[0]) {
 		&recursion_dialog_msgs ;
-	   	system "$DIALOGCOMMAND --title \'$RECURSIONTITLE\' --yesno \'$RECURSIONMSG\'";
+	   	system "$DIALOGCOMMAND --title \'$RECURSIONTITLE\' --yesnocancel \'$RECURSIONMSG\'";
 	   	if ( $? eq 0 ) {
+	   	print "Y\n";
 	   		$RECURSIVE = "1" ;
 	   	}
+	   	elsif ( $? == 512 ) { exit 0; }
         }
 
 	# Same as with delete, we don't want kdesu to run 'chown' when 'Ignore' is pressed in the kdesu dialog, so we use 'do_ownership' instead
-	exec "$SUCOMMAND \'$EXECNAME\' do_ownership \'$RECURSIVE\' 0:0 \'$TARGET\'";
+	system "$SUCOMMAND \'$EXECNAME do_ownership $RECURSIVE 0:0 $TARGET\'";
 	exit $?;
 }
 
@@ -1140,15 +1248,16 @@ sub user_ownership {
 	$RECURSIVE = "0" ;
 	if ( $#ARGV < 1 && -d $ARGV[0]) {
 		&recursion_dialog_msgs ;
-	   	system "$DIALOGCOMMAND --title \'$RECURSIONTITLE\' --yesno \'$RECURSIONMSG\'";
+	   	system "$DIALOGCOMMAND --title \'$RECURSIONTITLE\' --yesnocancel \'$RECURSIONMSG\'";
 	   	if ( $? eq 0 ) {
 	   		$RECURSIVE = "1" ;
 	   	}
+	   	elsif ( $? == 512 ) { exit 0; }
         }
 
 	#Create a list of user GIDs, so we can pick only the primary group
 	@GROUPS = split ' ', $);
-	exec "$SUCOMMAND \'$EXECNAME\' do_ownership \'$RECURSIVE\' $>:$GROUPS[0] \'$TARGET\'";
+	system "$SUCOMMAND \'$EXECNAME do_ownership $RECURSIVE $>:$GROUPS[0] $TARGET\'" ;
 	exit $?;
 }
 
@@ -1157,10 +1266,11 @@ sub custom_ownership {
 	$RECURSIVE = "0" ;
 	if ( $#ARGV < 1 && -d $ARGV[0]) {
 		&recursion_dialog_msgs ;
-	   	system "$DIALOGCOMMAND --title \'$RECURSIONTITLE\' --yesno \'$RECURSIONMSG\'";
+	   	system "$DIALOGCOMMAND --title \'$RECURSIONTITLE\' --yesnocancel \'$RECURSIONMSG\'";
 	   	if ( $? eq 0 ) {
 	   		$RECURSIVE = "1" ;
 	   	}
+	   	elsif ( $? == 512 ) { exit 0; }
 		$? = "0" ;
         }
 
@@ -1169,7 +1279,7 @@ sub custom_ownership {
 
 	if ( $? eq 0 ) {
 	   chop $UIDGID;
-	   exec "$SUCOMMAND \'$EXECNAME\' do_ownership \'$RECURSIVE\' \'$UIDGID\' \'$TARGET\'";
+	   system "$SUCOMMAND \'$EXECNAME do_ownership $RECURSIVE $UIDGID $TARGET\'" ;
 	   exit $?;
 	}
 }
@@ -1185,11 +1295,15 @@ sub do_ownership {
 	   #Create Target list
 	   $TARGET = join("' '", @ARGV) ;
 	   if ( $RECURSIVE eq 1 ) {
-		`chown --preserve-root -R \'$UIDGID\' \'$TARGET\'` ;
+		system("chown", "--preserve-root", "-R", "$UIDGID", "$TARGET");
 	   }
 	   else {
-		`chown --preserve-root \'$UIDGID\' \'$TARGET\'` ;
+		system("chown", "--preserve-root", "$UIDGID", "$TARGET");
 	   }
+	   &done_msgs;
+	   &ownership_dialog_msgs;
+	   system "$DIALOGCOMMAND --title \'$DONETITLE\' --msgbox \"$DONEMSG \n\n $OWNERTITLE: $TARGET \n$OWNERMSG $UIDGID\"" ;
+	   exit $?;
 	}
 }
 #---End ownership subroutines---
@@ -1224,14 +1338,15 @@ sub root_permissions {
 	#Check whether user wishes to change permissions recursively
 	if ( $#ARGV < 1 && -d $ARGV[0]) {
 		&recursion_dialog_msgs ;
-	   	system "$DIALOGCOMMAND --title \'$RECURSIONTITLE\' --yesno \'$RECURSIONMSG\'";
+	   	system "$DIALOGCOMMAND --title \'$RECURSIONTITLE\' --yesnocancel \'$RECURSIONMSG\'";
 	   	if ( $? eq 0 ) {
 	   		$RECURSIVE = "1" ; }
+	   	elsif ( $? == 512 ) { exit 0; }
 	}
 
 	if ( $RECURSIVE eq 1 ) {
 		&permission_dialog_msgs;
-		chomp($PERMLIST=`$DIALOGCOMMAND --title "$PERMTITLE" --checklist "$PERMMSG" u:r "$OWN $READ" $ORCUR u:w "$OWN $WRITE" $OWCUR u:X "$OWN $EXEC" $OXCUR g:r "$GRP $READ" $GRCUR g:w "$GRP $WRITE" $GWCUR g:X "$GRP $EXEC" $GXCUR o:r "$ALL $READ" $ARCUR o:w "$ALL $WRITE" $AWCUR o:X "$ALL $EXEC" $AXCUR u:s "$SPC $SUID" $SSCUR g:s "$SPC $SGID" $SGCUR o:t "$SPC $STICK" $STCUR`);
+		chomp($PERMLIST=`$DIALOGCOMMAND --title "$PERMTITLE" --checklist "$PERMMSG" u:r "$OWN $READ" $ORCUR u:w "$OWN $WRITE" $OWCUR u:x "$OWN $EXEC" $OXCUR g:r "$GRP $READ" $GRCUR g:w "$GRP $WRITE" $GWCUR g:x "$GRP $EXEC" $GXCUR o:r "$ALL $READ" $ARCUR o:w "$ALL $WRITE" $AWCUR o:x "$ALL $EXEC" $AXCUR u:s "$SPC $SUID" $SSCUR g:s "$SPC $SGID" $SGCUR o:t "$SPC $STICK" $STCUR`);
 
 		if ( $? eq 0 ) {
 		   #Calculate permission set for chmod
@@ -1284,7 +1399,8 @@ sub root_permissions {
 		system "$DIALOGCOMMAND --title \'$SPCTITLE\' --warningcontinuecancel \'$SPCMSG\'";
 	}
 	if ( $? eq 0 ) {
-	      exec "$SUCOMMAND \'$EXECNAME\' do_permissions \'$RECURSIVE\' \'$CHMOD\' \'$TARGET\'";
+	      #print "$SUCOMMAND \'$EXECNAME do_permissions $RECURSIVE $CHMOD $TARGET\'\n";
+	      exec "$SUCOMMAND \'$EXECNAME do_permissions $RECURSIVE $CHMOD $TARGET\'";
 	      exit $?;
 	}
 }
@@ -1299,11 +1415,15 @@ sub do_permissions {
 	   $TARGET = join("' '", @ARGV) ;
 
 	   if ( $RECURSIVE eq 1 ) {
-		`chmod --preserve-root -R \'$CHMOD\' \'$TARGET\'` ;
+		system "chmod --preserve-root \'$CHMOD\' \'$TARGET\' -R";
 	   }
 	   else {
-		`chmod --preserve-root \'$CHMOD\' \'$TARGET\'` ;
+		system "chmod --preserve-root \'$CHMOD\' \'$TARGET\'";
 	   }
+	   &done_msgs;
+	   &permission_dialog_msgs;
+	   system "$DIALOGCOMMAND --title \'$DONETITLE\' --msgbox \"$DONEMSG \n\n $PERMMSG $CHMOD \n($TARGET )\"" ;
+	   exit $?;
 	}
 }
 #---End permissions subroutines---
