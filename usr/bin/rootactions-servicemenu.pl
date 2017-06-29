@@ -59,7 +59,7 @@ sub copy_dialog_msgs {
 	   "fi" => "Kopioi",
 	   "fr" => "Copier",
 	   "gl" => "Copiar",
-	   "hu" => "Másolás",
+	   "hu" => "Másolási művelet",
 	   "it" => "Copia",
 	   "lt" => "Kopijuoti",
 	   "nb" => "Kopier",
@@ -83,7 +83,7 @@ sub copy_dialog_msgs {
 	   "fi" => "Tiedoston nimi",
 	   "fr" => "Nom du fichier:",
 	   "gl" => "Nome do ficheiro:",
-	   "hu" => "Fájl neve:",
+	   "hu" => "A célfájl új neve és a mentésének a helye\n(még az eredeit látod):",
 	   "it" => "Nome del file:",
 	   "lt" => "Failo pavadinimas:",
 	   "nb" => "Filnavn:",
@@ -143,7 +143,7 @@ sub rename_dialog_msgs {
 	   "fi" => "Uusi nimi:",
 	   "fr" => "Nouveau nom :",
 	   "gl" => "Novo nome:",
-	   "hu" => "Új név:",
+	   "hu" => "Add meg a fájl új nevét az étnevezéshez\nvagy a teljes útvonalat az áthelyezéshez:",
 	   "it" => "Nuovo nome:",
 	   "lt" => "Naujas pavadinimas:",
 	   "nb" => "Nytt navn:",
@@ -472,7 +472,7 @@ sub open_dialog_msgs {
 	   "fi" => "Avaa ohjelmalla: ",
 	   "fr" => "Ouvrir avec : ",
 	   "gl" => "Abrir con: ",
-	   "hu" => "Megnyitás ezzel: ",
+	   "hu" => "Add meg az alkalmazás nevét\n (Pl.: kate vagy /usr/bin/kate a szöveghez): ",
 	   "it" => "Apri con: ",
 	   "lt" => "Atverti su: ",
 	   "nb" => "Åpne med: ",
@@ -489,8 +489,38 @@ sub open_dialog_msgs {
 	   "tr" => "Birlikte aç: ",
 	   "xx" => "Your string, xx is the country abbreviation"
 	);
+
+	%PROGRAM = (
+	   "ca" => "App name or /path/name",
+	   "cs" => "App name or /path/name",
+	   "de" => "App name or /path/name",
+	   "el" => "App name or /path/name",
+	   "en_US" => "App name or /path/name",
+	   "es" => "App name or /path/name",
+	   "fi" => "App name or /path/name",
+	   "fr" => "App name or /path/name: ",
+	   "gl" => "App name or /path/name",
+	   "hu" => "Program neve vagy /útvonala/neve",
+	   "it" => "App name or /path/name",
+	   "lt" => "App name or /path/name",
+	   "nb" => "App name or /path/name",
+	   "nl" => "App name or /path/name",
+	   "nn" => "App name or /path/name",
+	   "pl" => "App name or /path/name",
+	   "pt" => "App name or /path/name",
+	   "pt_PT" => "App name or /path/name",
+	   "ru" => "App name or /path/name",
+	   "sl" => "App name or /path/name",
+	   "sr" => "App name or /path/name",
+	   "sr\@latin" => "App name or /path/name",
+	   "sv" => "App name or /path/name",
+	   "tr" => "App name or /path/name",
+	   "xx" => "App name or /path/name"
+	);
+
 	$OPENTITLE = ($OPENTITLE{"$KDELANG"} or $OPENTITLE{"$KDELANGSHT"} or $OPENTITLE{"en_US"});
 	$OPENMSG = ($OPENMSG{"$KDELANG"} or $OPENMSG{"$KDELANGSHT"} or $OPENMSG{"en_US"});
+	$PROGRAM = ($PROGRAM{"$KDELANG"} or $PROGRAM{"$KDELANGSHT"} or $PROGRAM{"en_US"});
 	return 0;
 }
 
@@ -986,7 +1016,7 @@ sub root_konsole_here {
 	$APPNAME = shift @ARGV ;
 	$WORKDIR = shift @ARGV ;
 	#print "$SUCOMMAND \"\'$EXECNAME\' do_root_konsole \'$APPNAME\' \'$WORKDIR\'\"\n";
-	#exec "$SUCOMMAND \"\'$EXECNAME\' do_root_konsole \'$APPNAME\' \'$WORKDIR\'\"";
+	exec "$APPNAME --workdir \'$WORKDIR\' --hold -e rootmod";
 	exit $?;
 }
 
@@ -1028,7 +1058,7 @@ sub do_root_konsole {
 sub custom_open_with {
 	#Get program
 	&open_dialog_msgs;
-	$APPNAME = `$DIALOGCOMMAND --title "$OPENTITLE" --inputbox "$OPENMSG" program` ;
+	$APPNAME = `$DIALOGCOMMAND --title "$OPENTITLE" --inputbox "$OPENMSG" "$PROGRAM"` ;
 	if ( $? eq 0 ) {
 	   chomp $APPNAME ;
       	   exec "$SUCOMMAND \"\'$EXECNAME\' do_open_with \'$APPNAME\' \'$TARGET\'\"";
@@ -1202,7 +1232,7 @@ sub root_delete {
 	
 	#Show warning dialog
 	&delete_dialog_msgs;
-	system "$DIALOGCOMMAND --title \'$DELETETITLE\' --warningcontinuecancel \'$DELETEMSG\\n$TARGETLIST\'" ;
+	system "$DIALOGCOMMAND --title \'$DELETETITLE\' --warningcontinuecancel \'$DELETEMSG\n$TARGETLIST\'" ;
 
 	#Is deletion confirmed?
 	if ( $? eq 0 ) {
