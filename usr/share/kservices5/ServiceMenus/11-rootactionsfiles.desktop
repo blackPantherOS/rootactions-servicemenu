@@ -34,7 +34,7 @@ X-KDE-Submenu[tr]=&Yetkili Eylemleri
 #X-KDE-Submenu[xx]=Your string 'xx' is the country abbreviation
 
 [Desktop Action EditAsText]
-Exec=rootactions-servicemenu.pl open_with defaultte %U
+Exec=servicemenu-rootactions.pl open_with defaultte %U
 Icon=accessories-text-editor
 Name=Open as Text
 Name[ca]=Obre com a text
@@ -64,7 +64,7 @@ Name[tr]=Metin olarak aç
 #Name[xx]=Your string 'xx' is the country abbreviation
 
 [Desktop Action OpenInKonsoleFile]
-Exec=rootactions-servicemenu.pl root_konsole_here konsole $(dirname "%f")
+Exec=servicemenu-rootactions.pl root_konsole_here konsole $(dirname "%f")
 Icon=utilities-terminal
 Name=Open Terminal Here
 Name[ca]=Obre terminal aquí
@@ -94,7 +94,7 @@ Name[tr]=Uçbirimi Burada Aç
 #Name[xx]=Your string 'xx' is the country abbreviation
 
 [Desktop Action OpenInFilemanagerFile]
-Exec=rootactions-servicemenu.pl open_with defaultfm $(dirname "%f")
+Exec=servicemenu-rootactions.pl open_with defaultfm $(dirname "%f")
 Icon=system-file-manager
 Name=Open File Manager Here
 Name[ca]=Obre gestor de fitxers aquí
@@ -124,7 +124,7 @@ Name[tr]=Dosya Yöneticisinde Aç
 #Name[xx]=Your string 'xx' is the country abbreviation
 
 [Desktop Action OpenWithCustom]
-Exec=rootactions-servicemenu.pl custom_open_with %U
+Exec=servicemenu-rootactions.pl custom_open_with %U
 Icon=system-run
 Name=Open with ...
 Name[ca]=Obre amb...
@@ -154,7 +154,7 @@ Name[tr]=Birlikte aç...
 #Name[xx]=Your string 'xx' is the country abbreviation
 
 [Desktop Action Copy]
-Exec=rootactions-servicemenu.pl root_copy %U
+Exec=servicemenu-rootactions.pl root_copy %U
 Icon=edit-copy
 Name=Copy
 Name[ca]=Copia
@@ -181,7 +181,7 @@ Name[tr]=Kopyala
 #Name[xx]=Your string 'xx' is the country abbreviation
 
 [Desktop Action Rename]
-Exec=rootactions-servicemenu.pl root_rename krename %U
+Exec=servicemenu-rootactions.pl root_rename krename %U
 Icon=edit-rename
 Name=Move/Rename
 Name[ca]=Mou/Reanomena
@@ -211,7 +211,7 @@ Name[tr]=Taşı/Yeniden İsimlendir
 #Name[xx]=Your string 'xx' is the country abbreviation
 
 [Desktop Action Compress]
-Exec=rootactions-servicemenu.pl root_compress %U
+Exec=servicemenu-rootactions.pl root_compress %U
 Icon=utilities-file-archiver
 Name=Compress
 Name[ca]=Compressió
@@ -241,7 +241,7 @@ Name[tr]=Sıkıştır
 #Name[xx]=Your string 'xx' is the country abbreviation
 
 [Desktop Action Delete]
-Exec=rootactions-servicemenu.pl root_delete %U
+Exec=servicemenu-rootactions.pl root_delete %U
 Icon=edit-delete
 Name=Delete
 Name[ca]=Esborra
@@ -271,7 +271,7 @@ Name[tr]=Sil
 #Name[xx]=Your string 'xx' is the country abbreviation
 
 [Desktop Action ChangeRoot]
-Exec=rootactions-servicemenu.pl root_ownership %U
+Exec=servicemenu-rootactions.pl root_ownership %U
 Icon=preferences-desktop-user-password
 Name=Ownership to Root
 Name[ca]=Propietari a root
@@ -301,7 +301,7 @@ Name[tr]=Dosyayı yetkili kullanıcının yap
 #Name[xx]=Your string 'xx' is the country abbreviation
 
 [Desktop Action ChangeUser]
-Exec=rootactions-servicemenu.pl user_ownership %U
+Exec=servicemenu-rootactions.pl user_ownership %U
 Icon=preferences-desktop-user
 Name=Ownership to Active User
 Name[ca]=Propietari a usuari actiu
@@ -331,7 +331,7 @@ Name[tr]=Dosyayı şu anda oturumu açık kullanıcının yap
 #Name[xx]=Your string 'xx' is the country abbreviation
 
 [Desktop Action ChangeCustom]
-Exec=rootactions-servicemenu.pl custom_ownership %U
+Exec=servicemenu-rootactions.pl custom_ownership %U
 Icon=user-properties
 Name=Ownership to ...
 Name[ca]=Propietari a...
@@ -361,7 +361,7 @@ Name[tr]=Dosyanın sahibini değiştir...
 #Name[xx]=Your string 'xx' is the country abbreviation
 
 [Desktop Action ChangePerm]
-Exec=rootactions-servicemenu.pl root_permissions %U
+Exec=servicemenu-rootactions.pl root_permissions %U
 Icon=folder-locked
 Name=Change Permissions
 Name[ca]=Canvia els permisos

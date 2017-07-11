@@ -1,3 +1,7 @@
+2.8.0 fixed root actons & translations
+- changed name
+- support plasma 5
+
 2.7.1 GHNS bugfix & translation release
 - GHNS: Create servicemenu directory (if it doesn't exist) with the install script
 - Added Slovene translation 
